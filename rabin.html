@@ -77,7 +77,7 @@
                     break;
                 }
 
-                if (exponent % 2n !== 0n) {
+                if (exponent % 2n !== 0n && res == 1n) {
                     output.innerHTML += `<p class="pass">PASS: Exponent is now odd and result was 1. Candidate p passed the round. Try with another base a</p>`;
                     break;
                 }
