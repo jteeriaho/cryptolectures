@@ -68,17 +68,17 @@
 
                 // Termination conditions
                 if (exponent === p - 1n && res !== 1n) {
-                    output.innerHTML += `<p class="fail">FAIL: Fermat test failed (a^(p-1) ≠ 1).</p>`;
+                    output.innerHTML += `<p class="fail">FAIL: Fermat test failed (a^(p-1) ≠ 1): p is composite.</p>`;
                     break;
                 }
 
                 if (res === p - 1n) {
-                    output.innerHTML += `<p class="pass">PASS: Reached p-1 (-1 mod p). This base suggests p is likely prime.</p>`;
+                    output.innerHTML += `<p class="pass">PASS: Reached p-1 (-1 mod p). Candidate p passed the round. Try with another base a</p>`;
                     break;
                 }
 
                 if (exponent % 2n !== 0n) {
-                    output.innerHTML += `<p class="pass">PASS: Exponent is now odd and result was 1. Base suggests p is likely prime.</p>`;
+                    output.innerHTML += `<p class="pass">PASS: Exponent is now odd and result was 1. Candidate p passed the round. Try with another base a</p>`;
                     break;
                 }
 
