@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fermat's primality test</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; padding: 0 10px; }
+        .result-box { margin-top: 20px; padding: 10px; border: 1px solid #ccc; background: #f9f9f9; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        .round { border-bottom: 1px dashed #ccc; padding: 5px 0; }
+        label { display: block; margin-top: 10px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box; }
+        button { margin-top: 15px; padding: 10px 20px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+
+    <h2>Fermat's primality test</h2>
+    <h5>Calculates a^(p-1) mod p for k different bases a</h5>
+    
+    <label for="primeCandidate">Candidate number (p):</label>
+    <input type="number" id="primeCandidate" placeholder="Input integer to be tested ">
+
+    <label for="rounds">Number of rounds (k):</label>
+    <input type="number" id="rounds" value="5">
+    <button onclick="runFermatTest()">Perform test</button>
+
+    <div id="results" class="result-box" style="display:none;"></div>
+
+    <script>
+        /**
+         * Nopea potenssiinkorotus (Modular Exponentiation)
+         * Laskee (base^exp) % mod tehokkaasti.
+         */
+        function modPow(base, exp, mod) {
+            let res = 1n;
+            base = base % mod;
+            while (exp > 0n) {
+                if (exp % 2n === 1n) res = (res * base) % mod;
+                base = (base * base) % mod;
+                exp = exp / 2n;
+            }
+            return res;
+        }
+
+        function runFermatTest() {
+            const pInput = document.getElementById('primeCandidate').value;
+            const k = parseInt(document.getElementById('rounds').value);
+            const resultDiv = document.getElementById('results');
+            
+            if (!pInput || isNaN(k) || k <= 0) {
+                alert("Syötä kelvollinen luku ja kierrosmäärä.");
+                return;
+            }
+
+            const p = BigInt(pInput);
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<h3>Test results for given candidate number: ${p}</h3>`;
+
+            // Erikoistapaukset
+            if (p < 2n) {
+                resultDiv.innerHTML += `<p class="fail">Result: Not a prime (p < 2)</p>`;
+                return;
+            }
+            if (p === 2n || p === 3n) {
+                resultDiv.innerHTML += `<p class="pass">Result: Is prime</p>`;
+                return;
+            }
+
+            let isProbablyPrime = true;
+
+            for (let i = 1; i <= k; i++) {
+                // Valitaan satunnainen kanta 'a' väliltä [2, p - 2]
+                // Math.random() riittää tässä opetustarkoitukseen
+                const range = p - 4n;
+                const randomBig = BigInt(Math.floor(Math.random() * Number(range > 2000000000n ? 2000000000n : range)));
+                const a = 2n + (randomBig % (p - 3n));
+
+                const res = modPow(a, p - 1n, p);
+                const passed = (res === 1n);
+
+                const roundHtml = `
+                    <div class="round">
+                        Round ${i}: Base <b>a = ${a}</b> | 
+                        Result of a^(p-1) mod p: ${res} | 
+                        <span class="${passed ? 'pass' : 'fail'}">${passed ? 'PASSED' : 'FAILED'}</span>
+                    </div>`;
+                resultDiv.innerHTML += roundHtml;
+
+                if (!passed) {
+                    isProbablyPrime = false;
+                    break; // Fermat witness löydetty, luku on varmasti yhdistetty
+                }
+            }
+
+            const finalResult = isProbablyPrime 
+                ? `<h4 class="pass">Conclusion: The number is probably prime.</h4>`
+                : `<h4 class="fail">Conclusion: The number is composite (not prime).</h4>`;
+            
+            resultDiv.innerHTML += finalResult;
+        }
+    </script>
+</body>
+</html>

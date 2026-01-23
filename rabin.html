@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Miller-Rabin Single Round (Halving Method)</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 20px auto; line-height: 1.5; }
+        .container { border: 1px solid #ccc; padding: 20px; border-radius: 8px; background: #fafafa; }
+        .step { margin: 8px 0; padding: 5px; border-left: 4px solid #ddd; background: #fff; font-family: monospace; }
+        .pass { color: green; font-weight: bold; }
+        .fail { color: red; font-weight: bold; }
+        input { padding: 5px; width: 150px; }
+        button { padding: 5px 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h3>Rabin-Miller Round (Method of halving the exponent)</h3>
+        <p>This test starts at a^{p-1} mod p and halves the exponent repeatedly.</p>
+        
+        <label>Candidate (p):</label><br>
+        <input type="number" id="p" value="221"><br><br>
+        
+        <label>Choose base (a):</label><br>
+        <input type="number" id="a" value="174"><br><br>
+        
+        <button onclick="runHalvingTest()">Run Test</button>
+
+        <div id="results" style="margin-top: 20px;"></div>
+    </div>
+
+    <script>
+        function power(a, b, m) {
+            let res = 1n;
+            a = a % m;
+            while (b > 0n) {
+                if (b % 2n === 1n) res = (res * a) % m;
+                a = (a * a) % m;
+                b = b / 2n;
+            }
+            return res;
+        }
+
+        function runHalvingTest() {
+            const p = BigInt(document.getElementById('p').value);
+            const a = BigInt(document.getElementById('a').value);
+            const output = document.getElementById('results');
+            output.innerHTML = "";
+
+            if (p % 2n === 0n && p !== 2n) {
+                output.innerHTML = "<b class='fail'>FAIL: p must be odd.</b>";
+                return;
+            }
+
+            let exponent = p - 1n;
+            let resultsList = [];
+            let compositeFound = false;
+
+            while (true) {
+                let res = power(a, exponent, p);
+                resultsList.push({ exp: exponent, val: res });
+
+                // Display phase
+                let div = document.createElement('div');
+                div.className = 'step';
+                div.innerHTML = `a^(${exponent}) mod ${p} = <b>${res}</b>`;
+                output.appendChild(div);
+
+                // Termination conditions
+                if (exponent === p - 1n && res !== 1n) {
+                    output.innerHTML += `<p class="fail">FAIL: Fermat test failed (a^(p-1) ≠ 1).</p>`;
+                    break;
+                }
+
+                if (res === p - 1n) {
+                    output.innerHTML += `<p class="pass">PASS: Reached p-1 (-1 mod p). This base suggests p is likely prime.</p>`;
+                    break;
+                }
+
+                if (exponent % 2n !== 0n) {
+                    output.innerHTML += `<p class="pass">PASS: Exponent is now odd and result was 1. Base suggests p is likely prime.</p>`;
+                    break;
+                }
+
+                // If result is 1, continue halving. If result is anything else (not 1 or p-1), it's composite.
+                if (res !== 1n) {
+                    output.innerHTML += `<p class="fail">FAIL: Found non-trivial square root of 1. ${p} is COMPOSITE.<br><h6>(Only 1 and p-1 are allowed endings of right hand side sequence)</h6></p>`;
+                    break;
+                }
+
+                exponent = exponent / 2n;
+            }
+        }
+    </script>
+</body>
+</html>
